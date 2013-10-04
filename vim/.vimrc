@@ -43,7 +43,7 @@ Bundle 'kien/ctrlp.vim'
 Bundle 'Markdown'
 
 " Plugin options
-let g:ycm_global_ycm_extra_conf = '~/.tools/.ycm_extra_conf.py'
+let g:ycm_global_ycm_extra_conf = '~/.vim/ycm_extra_conf.py'
 
 " Because I keep forgetting sudo
 cmap w!! %!sudo tee > /dev/null %
