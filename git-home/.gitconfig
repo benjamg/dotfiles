@@ -1,0 +1,9 @@
+[user]
+	email = ben@benjamg.com
+	name = Ben Gray
+[push]
+	default = current
+[mergetool]
+	keepBackup = false
+[difftool]
+	prompt = false
