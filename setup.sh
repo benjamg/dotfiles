@@ -28,15 +28,15 @@ fi
 sudo apt-get update
 
 # Tools
-sudo apt-get install curl grc
+sudo apt-get -y install curl grc stow
 
 # Git Setup
 stow -v git-$location
 
 # Vim setup
 stow -v vim
-sudo apt-get remove vim-tiny
-sudo apt-get install build-essential cmake python-dev vim
+sudo apt-get -y remove vim-tiny
+sudo apt-get -y install build-essential cmake python-dev vim
 git clone https://github.com/gmarik/vundle ~/.vim/bundle/vundle
 vim +BundleInstall +qall
 cd ~/.vim/bundle/YouCompleteMe
@@ -44,9 +44,13 @@ cd ~/.vim/bundle/YouCompleteMe
 	cd -
 
 # Spotify
-sudo apt-get install spotify-client
-# TODO: apply this directly to any media key play/pause option
+sudo apt-get -y install spotify-client dconf-tools
+# TODO: have a mix of gsettings and gconftool here, fix
 # dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause
+gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/spotifypause/']"
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/spotifypause/ binding 'XF86AudioPlay'
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/spotifypause/ command 'dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause'
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/spotifypause/ name 'Spotify Play/Pause'
 
 # Solarized setup - stolen from @mheap "http://michaelheap.com/getting-solarized-working-on-ubuntu"
 gconftool-2 --set "/apps/gnome-terminal/profiles/Default/use_theme_background" --type bool false
