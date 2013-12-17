@@ -1,7 +1,5 @@
 #!/bin/bash
 
-command -v stow >/dev/null 2>&1 || { echo >&2 "stow is required for this script to work.  Aborting."; exit 1; }
-
 config_dir=`pwd`"/config"
 location="home"
 if [[ `whoami` == "bgray" ]]; then location="work"; fi
@@ -46,11 +44,11 @@ cd ~/.vim/bundle/YouCompleteMe
 # Spotify
 sudo apt-get -y install spotify-client dconf-tools
 # TODO: have a mix of gsettings and gconftool here, fix
-# dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause
-gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/spotifypause/']"
-gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/spotifypause/ binding 'XF86AudioPlay'
-gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/spotifypause/ command 'dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause'
-gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/spotifypause/ name 'Spotify Play/Pause'
+echo "use: dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause"
+# gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/spotifypause/']"
+# gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/spotifypause/ binding 'XF86AudioPlay'
+# gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/spotifypause/ command 'dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause'
+# gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/spotifypause/ name 'Spotify Play/Pause'
 
 # Solarized setup - stolen from @mheap "http://michaelheap.com/getting-solarized-working-on-ubuntu"
 gconftool-2 --set "/apps/gnome-terminal/profiles/Default/use_theme_background" --type bool false
