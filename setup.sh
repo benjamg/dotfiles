@@ -1,11 +1,10 @@
 #!/bin/bash
 
-config_dir=`pwd`"/config"
+base_dir=`pwd`
 location="home"
 if [[ `whoami` == "bgray" ]]; then location="work"; fi
 
 echo building for $location
-echo  config: $config_dir
 sleep 3
 
 # Add updated PPAs
@@ -34,12 +33,12 @@ stow -v git-$location
 # Vim setup
 stow -v vim
 sudo apt-get -y remove vim-tiny
-sudo apt-get -y install build-essential cmake python-dev vim
+sudo apt-get -y install autoconf build-essential cmake g++ gcc python-dev vim
 git clone https://github.com/gmarik/vundle ~/.vim/bundle/vundle
 vim +BundleInstall +qall
 cd ~/.vim/bundle/YouCompleteMe
 ./install.sh --clang-completer
-	cd -
+cd -
 
 # Spotify
 sudo apt-get -y install spotify-client dconf-tools
@@ -60,4 +59,61 @@ gconftool-2 --set "/apps/gnome-terminal/profiles/Default/foreground_color" --typ
 if [ $location == "work" ]; then
 	# modified the ansi colour to push yellow back towards yellow - this is for our production/staging terminal colours
 	gconftool-2 --set "/apps/gnome-terminal/profiles/Default/palette" --type string "#070736364242:#D3D301010202:#858599990000:#B5B589890000:#26268B8BD2D2:#D3D336368282:#2A2AA1A19898:#EEEEE8E8D5D5:#00002B2B3636:#CBCB4B4B1616:#58586E6E7575:#EDEDD4D40000:#838394949696:#6C6C7171C4C4:#9393A1A1A1A1:#FDFDF6F6E3E3"
+
+	# Install things we need for dev system
+	sudo apt-get -y install doxygen libboost-all-devel libbz2-dev \
+		libcurl4-openssl-dev libevent-dev libhiredis-dev libicu-dev \
+		liblog4cxx10-dev libmecab-dev libmemcached-dev libmysql++-dev \
+		libpcre3-dev libpcre++-dev libzookeeper-mt-dev mecab-ipadic-utf8 \
+		mercurial openjdk-6-jdk subversion suig uuid-dev zlib1g-dev
+
+	# Down install things needed for dev system that isn't in apt
+	cd /tmp
+	cores=`nproc`
+
+	# Rudiments
+	wget http://heanet.dl.sourceforge.net/project/rudiments/rudiments/0.32/rudiments-0.32.tar.gz
+	tar -xf rudiments-0.32.tar.gz
+	cd rudiments-0.32
+	./configure && make -j$cores && sudo make install
+	cd -
+
+	# Kafka-cpp
+	wget https://github.com/datasift/kafka-cpp/archive/1.0.1.tar.gz
+	tar -xf kafka-cpp-1.0.1.tar.gz
+	cd kafak-cpp-1.0.1
+	autoreconf -if && ./configure && make -j$cores && sudo make install
+	cd -
+
+	# ZeroMQ - DS fork
+	git clone git@github.com:datasift/zeromq4-x.git
+	cd zeromq4-x
+	./autogen.sh && ./configure && make -j$cores && sudo make install
+	cd -
+
+	# Zmqpp - DS fork
+	git clone git://github.com/datasift/zmqpp.git
+	cd zmqpp
+	make -j$cores && sudo make install
+	cd -
+
+	# Re2
+	hg clone https://re2.googlecode.com/hg re2
+	cd re2
+	make -j$cores && sudo make install
+	cd -
+
+	# Xxhash
+	subversion checkout https://xxhash.googlecode.com/svn/trunk xxhash
+	cd xxhash
+	gcc -shared -o libxxhash.so -c -fpic xxhash.c
+	sudo install -D libxxhash.so /usr/local/lib/libxxhash.so.1.0.0
+	sudo install -D xxhash.h /usr/local/include/xxhash.so
+	sudo ln /usr/local/lib/libxxhash.so.1.0.0 /usr/local/libxxhash.so.1
+	sudo ln /usr/local/lib/libxxhash.so.1.0.0 /usr/local/libxxhash.so
+	cd -
+
+	sudo ldconfig
+
+	cd $base_dir
 fi

@@ -5,7 +5,9 @@
 sudo apt-get -y install git
 git git@github.com:benjamg/dotfiles .dotfiles
 
+basedir=`pwd`
+
 cd .dotfiles
 ./setup.sh
-cd -
+cd $basedir
 
