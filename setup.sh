@@ -29,6 +29,7 @@ sudo apt-get -y install curl grc stow
 
 # Git Setup
 stow -v git-$location
+sudo apt-get -y install git-flow
 
 # Vim setup
 stow -v vim
