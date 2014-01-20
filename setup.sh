@@ -69,7 +69,8 @@ if [ $location == "work" ]; then
 		mercurial openjdk-6-jdk subversion uuid-dev zlib1g-dev
 
 	# Down install things needed for dev system that isn't in apt
-	cd /tmp
+	mkdir tmp
+	cd tmp
 	cores=`nproc`
 
 	# Rudiments
@@ -114,6 +115,7 @@ if [ $location == "work" ]; then
 	sudo ln /usr/local/lib/libxxhash.so.1.0.0 /usr/local/libxxhash.so
 	cd -
 
+	rm -r tmp
 	sudo ldconfig
 
 	cd $base_dir
