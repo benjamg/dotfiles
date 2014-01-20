@@ -65,7 +65,7 @@ if [ $location == "work" ]; then
 	sudo apt-get -y install doxygen libboost-all-devel libbz2-dev \
 		libcurl4-openssl-dev libevent-dev libhiredis-dev libicu-dev \
 		liblog4cxx10-dev libmecab-dev libmemcached-dev libmysql++-dev \
-		libpcre3-dev libpcre++-dev libzookeeper-mt-dev mecab-ipadic-utf8 \
+		libpcre3-dev libpcre++-dev libtool libzookeeper-mt-dev mecab-ipadic-utf8 \
 		mercurial openjdk-6-jdk subversion suig uuid-dev zlib1g-dev
 
 	# Down install things needed for dev system that isn't in apt
@@ -105,7 +105,7 @@ if [ $location == "work" ]; then
 	cd -
 
 	# Xxhash
-	subversion checkout https://xxhash.googlecode.com/svn/trunk xxhash
+	svn checkout https://xxhash.googlecode.com/svn/trunk xxhash
 	cd xxhash
 	gcc -shared -o libxxhash.so -c -fpic xxhash.c
 	sudo install -D libxxhash.so /usr/local/lib/libxxhash.so.1.0.0
