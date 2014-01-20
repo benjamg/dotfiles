@@ -62,11 +62,11 @@ if [ $location == "work" ]; then
 	gconftool-2 --set "/apps/gnome-terminal/profiles/Default/palette" --type string "#070736364242:#D3D301010202:#858599990000:#B5B589890000:#26268B8BD2D2:#D3D336368282:#2A2AA1A19898:#EEEEE8E8D5D5:#00002B2B3636:#CBCB4B4B1616:#58586E6E7575:#EDEDD4D40000:#838394949696:#6C6C7171C4C4:#9393A1A1A1A1:#FDFDF6F6E3E3"
 
 	# Install things we need for dev system
-	sudo apt-get -y install doxygen libboost-all-devel libbz2-dev \
+	sudo apt-get -y install doxygen libboost-all-dev libbz2-dev \
 		libcurl4-openssl-dev libevent-dev libhiredis-dev libicu-dev \
 		liblog4cxx10-dev libmecab-dev libmemcached-dev libmysql++-dev \
 		libpcre3-dev libpcre++-dev libtool libzookeeper-mt-dev mecab-ipadic-utf8 \
-		mercurial openjdk-6-jdk subversion suig uuid-dev zlib1g-dev
+		mercurial openjdk-6-jdk subversion uuid-dev zlib1g-dev
 
 	# Down install things needed for dev system that isn't in apt
 	cd /tmp
