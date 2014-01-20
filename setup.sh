@@ -110,7 +110,8 @@ if [ $location == "work" ]; then
 	cd xxhash
 	gcc -shared -o libxxhash.so -c -fpic xxhash.c
 	sudo install -D libxxhash.so /usr/local/lib/libxxhash.so.1.0.0
-	sudo install -D xxhash.h /usr/local/include/xxhash.so
+	sudo install -D libxxhash.so /usr/local/lib/
+	sudo install -D xxhash.h /usr/local/include/
 	sudo ln /usr/local/lib/libxxhash.so.1.0.0 /usr/local/libxxhash.so.1
 	sudo ln /usr/local/lib/libxxhash.so.1.0.0 /usr/local/libxxhash.so
 	cd -
