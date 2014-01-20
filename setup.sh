@@ -115,8 +115,8 @@ if [ $location == "work" ]; then
 	sudo ln /usr/local/lib/libxxhash.so.1.0.0 /usr/local/libxxhash.so
 	cd -
 
-	rm -r tmp
 	sudo ldconfig
 
 	cd $base_dir
+	rm -r tmp
 fi
