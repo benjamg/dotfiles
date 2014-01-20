@@ -82,7 +82,7 @@ if [ $location == "work" ]; then
 
 	# Kafka-cpp
 	wget https://github.com/datasift/kafka-cpp/archive/1.0.1.tar.gz
-	tar -xf kafka-cpp-1.0.1.tar.gz
+	tar -xf 1.0.1.tar.gz
 	cd kafak-cpp-1.0.1
 	autoreconf -if && ./configure && make -j$cores && sudo make install
 	cd -
