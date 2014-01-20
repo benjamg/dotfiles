@@ -77,7 +77,7 @@ if [ $location == "work" ]; then
 	wget http://heanet.dl.sourceforge.net/project/rudiments/rudiments/0.32/rudiments-0.32.tar.gz
 	tar -xf rudiments-0.32.tar.gz
 	cd rudiments-0.32
-	./configure && make -j$cores && sudo make install
+	./configure prefix=/usr/local && make -j$cores && sudo make install
 	cd -
 
 	# Kafka-cpp
