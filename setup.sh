@@ -119,5 +119,5 @@ if [ $location == "work" ]; then
 	sudo ldconfig
 
 	cd $base_dir
-	rm -r tmp
+	rm -rf -- tmp
 fi
