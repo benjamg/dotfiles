@@ -1,123 +1,102 @@
 #!/bin/bash
 
+ERROR_APP_NAME=$0
+
+function die()
+{
+    echo "${ERROR_APP_NAME}: ${1}" 1>&2
+    exit 1
+}
+
+function process_role()
+{
+    if [[ -z $1 ]]; then die "No role passed to process_role function."
+    fi
+
+	if [[ ! -f roles/$1 ]]; then
+		die "Unable to locate role file '$1'"
+	fi
+
+	
+	# Check parents
+	for parent in `grep role: roles/$1 | sed 's/^role://'`
+	do
+		echo "processing roles/$parent"
+		process_role $parent
+	done
+
+	echo "applying roles/$1"
+
+	# Build module deps
+	modules=( $(grep -v role: roles/$1) )
+	keys=()
+	repos=()
+	packages=()
+
+	for m in ${modules[@]}
+	do
+		if [[ ! -d modules/$m ]]; then die "Unable to locate module '$m'"; fi
+		if [[ -f modules/$m/apt_keys ]]; then keys+=( $(cat modules/$m/apt_keys | xargs -0) ); fi
+		if [[ -f modules/$m/apt_repos ]]; then repos+=( $(cat modules/$m/apt_repos | xargs -0) ); fi
+		if [[ -f modules/$m/packages ]]; then packages+=( $(cat modules/$m/packages | xargs -0) ); fi
+	done
+
+	# Add PPAs (and keys)
+	for key in ${keys[@]}
+	do
+		sudo add-key adv --keyserver keyserver.ubuntu.com --recv-keys $key
+	done
+
+	for repo in $repos
+	do
+		sudo add-apt-repository -u $repo
+	done
+
+	# Update
+	sudo apt-get update
+
+	# Packages
+	sudo apt-get -y install ${packages[@]}
+
+	for m in ${modules[@]}
+	do
+		# Stow Configurations
+		if [[ -f modules/$m/stow ]]; then
+			stow -v -d modules/$m -t ~ stow
+		fi
+
+		# Setup
+		if [[ -f modules/$m/setup.sh ]]; then
+			./modules/$m/setup.sh
+		fi
+	done
+}
+
+
 base_dir=`pwd`
-location="home"
-if [[ `whoami` == "bgray" ]]; then location="work"; fi
+role="$1"
 
-echo building for $location
-sleep 3
-
-# Add updated PPAs
-sudo add-apt-repository ppa:nmi/vim-snapshots
-
-# Add sources
-if [ ! -f /etc/apt/sources.list.d/playonlinux.list ]; then
-	sudo wget http://deb.playonlinux.com/playonlinux_quantal.list -O /etc/apt/sources.list.d/playonlinux.list
-	sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E0F72778C4676186
+if [[ -z $role ]]; then
+	exit_option="exit";
+	options=( $(ls -1 roles | grep -v common | xargs -0) )
+	PS3="Select role or exit: "
+	select opt in "${options[@]}" "$exit_option"
+	do
+		if [[ $opt == $exit_option ]]; then
+			exit
+		fi
+		if [[ -n $opt ]]; then
+			role="$opt"
+			break
+		fi
+	done
 fi
-
-if [ ! -f /etc/apt/sources.list.d/spotify.list ]; then
-	echo "deb http://repository.spotify.com stable non-free" | sudo tee /etc/apt/sources.list.d/spotify.list
-	sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 94558F59
-fi
-
-# Update
-sudo apt-get update
 
 # Tools
+sudo apt-get -y remove vim-tiny
 sudo apt-get -y install curl grc stow
 
-# Git Setup
-stow -v git-$location
-sudo apt-get -y install git-flow
+# Role
+echo building for $role
+process_role $role
 
-# Vim setup
-stow -v vim
-sudo apt-get -y remove vim-tiny
-sudo apt-get -y install autoconf build-essential cmake g++ gcc python-dev vim
-git clone https://github.com/gmarik/vundle ~/.vim/bundle/vundle
-vim +BundleInstall +qall
-cd ~/.vim/bundle/YouCompleteMe
-./install.sh --clang-completer
-cd -
-
-# Spotify
-sudo apt-get -y install spotify-client dconf-tools
-# TODO: have a mix of gsettings and gconftool here, fix
-echo "use: dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause"
-# gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/spotifypause/']"
-# gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/spotifypause/ binding 'XF86AudioPlay'
-# gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/spotifypause/ command 'dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause'
-# gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/spotifypause/ name 'Spotify Play/Pause'
-
-# Solarized setup - stolen from @mheap "http://michaelheap.com/getting-solarized-working-on-ubuntu"
-gconftool-2 --set "/apps/gnome-terminal/profiles/Default/use_theme_background" --type bool false
-gconftool-2 --set "/apps/gnome-terminal/profiles/Default/use_theme_colors" --type bool false
-gconftool-2 --set "/apps/gnome-terminal/profiles/Default/palette" --type string "#070736364242:#D3D301010202:#858599990000:#B5B589890000:#26268B8BD2D2:#D3D336368282:#2A2AA1A19898:#EEEEE8E8D5D5:#00002B2B3636:#CBCB4B4B1616:#58586E6E7575:#65657B7B8383:#838394949696:#6C6C7171C4C4:#9393A1A1A1A1:#FDFDF6F6E3E3"
-gconftool-2 --set "/apps/gnome-terminal/profiles/Default/background_color" --type string "#00002B2B3636"
-gconftool-2 --set "/apps/gnome-terminal/profiles/Default/foreground_color" --type string "#65657B7B8383"
-
-if [ $location == "work" ]; then
-	# modified the ansi colour to push yellow back towards yellow - this is for our production/staging terminal colours
-	gconftool-2 --set "/apps/gnome-terminal/profiles/Default/palette" --type string "#070736364242:#D3D301010202:#858599990000:#B5B589890000:#26268B8BD2D2:#D3D336368282:#2A2AA1A19898:#EEEEE8E8D5D5:#00002B2B3636:#CBCB4B4B1616:#58586E6E7575:#EDEDD4D40000:#838394949696:#6C6C7171C4C4:#9393A1A1A1A1:#FDFDF6F6E3E3"
-
-	# Install things we need for dev system
-	sudo apt-get -y install doxygen libboost-all-dev libbz2-dev \
-		libcurl4-openssl-dev libevent-dev libhiredis-dev libicu-dev \
-		liblog4cxx10-dev libmecab-dev libmemcached-dev libmysql++-dev \
-		libpcre3-dev libpcre++-dev libtool libzookeeper-mt-dev mecab-ipadic-utf8 \
-		mercurial openjdk-6-jdk subversion uuid-dev zlib1g-dev
-
-	# Down install things needed for dev system that isn't in apt
-	mkdir tmp
-	cd tmp
-	cores=`nproc`
-
-	# Rudiments
-	wget http://heanet.dl.sourceforge.net/project/rudiments/rudiments/0.32/rudiments-0.32.tar.gz
-	tar -xf rudiments-0.32.tar.gz
-	cd rudiments-0.32
-	./configure prefix=/usr/local && make -j$cores && sudo make install
-	cd -
-
-	# Kafka-cpp
-	wget https://github.com/datasift/kafka-cpp/archive/1.0.2.tar.gz
-	tar -xf 1.0.2.tar.gz
-	cd kafak-cpp-1.0.2
-	autoreconf -if && ./configure && make -j$cores && sudo make install
-	cd -
-
-	# ZeroMQ - DS fork
-	git clone git@github.com:datasift/zeromq4-x.git
-	cd zeromq4-x
-	./autogen.sh && ./configure && make -j$cores && sudo make install
-	cd -
-
-	# Zmqpp - DS fork
-	git clone git://github.com/datasift/zmqpp.git
-	cd zmqpp
-	make -j$cores && sudo make install
-	cd -
-
-	# Re2
-	hg clone https://re2.googlecode.com/hg re2
-	cd re2
-	make -j$cores && sudo make install
-	cd -
-
-	# Xxhash
-	svn checkout https://xxhash.googlecode.com/svn/trunk xxhash
-	cd xxhash
-	gcc -shared -o libxxhash.so -c -fpic xxhash.c
-	sudo install -D libxxhash.so /usr/local/lib/libxxhash.so.1.0.0
-	sudo install -D libxxhash.so /usr/local/lib/
-	sudo install -D xxhash.h /usr/local/include/
-	sudo ln /usr/local/lib/libxxhash.so.1.0.0 /usr/local/libxxhash.so.1
-	sudo ln /usr/local/lib/libxxhash.so.1.0.0 /usr/local/libxxhash.so
-	cd -
-
-	sudo ldconfig
-
-	cd $base_dir
-	rm -rf -- tmp
-fi

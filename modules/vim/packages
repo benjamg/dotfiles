@@ -1,0 +1,7 @@
+autoconf
+build-essential
+cmake
+g++
+gcc
+python-dev
+vim
