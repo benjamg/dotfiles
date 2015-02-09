@@ -11,59 +11,60 @@ pushd tmp
 wget http://heanet.dl.sourceforge.net/project/rudiments/rudiments/0.32/rudiments-0.32.tar.gz
 tar -xf rudiments-0.32.tar.gz
 pushd rudiments-0.32
-./configure prefix=/usr/local && make -j$cores && sudo make install
+./configure prefix=/usr/local && make -j$cores && sudo make install || exit
 popd
 
 # ICU
 wget http://download.icu-project.org/files/icu4c/51.2/icu4c-51_2-src.tgz
-tar -xf icu4c-51-2-src.tgz
+tar -xf icu4c-51_2-src.tgz
 pushd icu/source
-autoconf && ./configure --with-data-packaging=library --disable-samples && make -j$cores && sudo make install
+autoconf && ./configure --with-data-packaging=library --disable-samples && make -j$cores && sudo make install || exit
 popd
 
 # Mecab
 wget http://mecab.googlecode.com/files/mecab-0.996.tar.gz
 tar -xf mecab-0.996.tar.gz
 pushd mecab-0.996
-autoconf && ./configure --enable-utf8-only && make -j$cores && sudo make install
+autoconf && ./configure --enable-utf8-only && make -j$cores && sudo make install || exit
 popd
 
 wget https://mecab.googlecode.com/files/mecab-ipadic-2.7.0-20070801.tar.gz
 tar -xf mecab-ipadic-2.7.0-20070801.tar.gz
 pushd mecab-ipadic-2.7.0-20070801
-autoconf && ./configure --with-charset=utf-8 && make -j$cores && sudo make install
+autoconf && ./configure --with-charset=utf-8 && make -j$cores && sudo make install || exit
 popd
 
 # Boost
 wget http://downloads.sourceforge.net/boost/boost_1_57_0.tar.bz2
 tar -xf boost_1_57_0.tar.bz2
 pushd boost_1_57_0
-./bootstrap.sh && ./b2 -j$cores --without-python --without-wave --without-mpi && sudo -without-python --without-wave --without-mpi install
+./bootstrap.sh && ./b2 -j$cores --without-python --without-wave --without-mpi && sudo ./b2 --without-python --without-wave --without-mpi install || exit
 popd
 
-# Kafka-cpp
-wget https://github.com/datasift/kafka-cpp/archive/1.0.2.tar.gz
-tar -xf 1.0.2.tar.gz
-pushd kafak-cpp-1.0.2
-autoreconf -if && ./configure && make -j$cores && sudo make install
-popd
+# Kafka-cpp - hacky
+#wget https://github.com/datasift/kafka-cpp/archive/1.0.2.tar.gz
+#tar -xf 1.0.2.tar.gz
+#pushd kafka-cpp-1.0.2
+#sed 's/AUTOMAKE_OPTIONS=foreign/AUTOMAKE_OPTIONS=foreign subdir-objects' Makefile.am -i
+#autoreconf -if && ./configure && make -j$cores && sudo make install || exit
+#popd
 
 # ZeroMQ - DS fork
 git clone git@github.com:datasift/zeromq4-x.git
 pushd zeromq4-x
-./autogen.sh && ./configure && make -j$cores && sudo make install
+./autogen.sh && ./configure && make -j$cores && sudo make install || exit
 popd
 
 # Zmqpp - DS fork
 git clone git://github.com/datasift/zmqpp.git
 pushd zmqpp
-make -j$cores && sudo make install
+make -j$cores && sudo make install || exit
 popd
 
 # Re2
 hg clone https://re2.googlecode.com/hg re2
 pushd re2
-make -j$cores && sudo make install
+make -j$cores && sudo make install || exit
 popd
 
 # Xxhash

@@ -35,6 +35,7 @@ function process_role()
 
 	for m in ${modules[@]}
 	do
+		IFS=$'\r\n'
 		if [[ ! -d modules/$m ]]; then die "Unable to locate module '$m'"; fi
 		if [[ -f modules/$m/apt_keys ]]; then keys+=( $(cat modules/$m/apt_keys | xargs -0) ); fi
 		if [[ -f modules/$m/apt_repos ]]; then repos+=( $(cat modules/$m/apt_repos | xargs -0) ); fi
@@ -44,12 +45,12 @@ function process_role()
 	# Add PPAs (and keys)
 	for key in ${keys[@]}
 	do
-		sudo add-key adv --keyserver keyserver.ubuntu.com --recv-keys $key
+		sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $key
 	done
 
-	for repo in $repos
+	for repo in ${repos[@]}
 	do
-		sudo add-apt-repository -u $repo
+		sudo apt-add-repository -y $repo
 	done
 
 	# Update
@@ -61,7 +62,7 @@ function process_role()
 	for m in ${modules[@]}
 	do
 		# Stow Configurations
-		if [[ -f modules/$m/stow ]]; then
+		if [[ -d modules/$m/stow ]]; then
 			stow -v -d modules/$m -t ~ stow
 		fi
 
@@ -71,7 +72,6 @@ function process_role()
 		fi
 	done
 }
-
 
 base_dir=`pwd`
 role="$1"
