@@ -7,13 +7,6 @@ cores=`nproc`
 mkdir tmp
 pushd tmp
 
-# Rudiments
-wget http://heanet.dl.sourceforge.net/project/rudiments/rudiments/0.32/rudiments-0.32.tar.gz
-tar -xf rudiments-0.32.tar.gz
-pushd rudiments-0.32
-./configure prefix=/usr/local && make -j$cores && sudo make install || exit
-popd
-
 # ICU
 wget http://download.icu-project.org/files/icu4c/51.2/icu4c-51_2-src.tgz
 tar -xf icu4c-51_2-src.tgz
