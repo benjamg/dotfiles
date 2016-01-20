@@ -10,13 +10,13 @@ function die()
 
 function process_role()
 {
-    if [[ -z $1 ]]; then die "No role passed to process_role function."
+    if [[ -z $1 ]]; then
+		die "No role passed to process_role function."
     fi
 
 	if [[ ! -f roles/$1 ]]; then
 		die "Unable to locate role file '$1'"
 	fi
-
 	
 	# Check parents
 	for parent in `grep role: roles/$1 | sed 's/^role://'`
