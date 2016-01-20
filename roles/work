@@ -1,3 +1,10 @@
-role:common
+role:.common
 git-datasift
-development-datasift
+dev-datasift
+libzmq
+libzmqpp
+libboost
+libicu
+libmecab
+libre2
+libxxhash

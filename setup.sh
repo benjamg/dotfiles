@@ -8,95 +8,97 @@ function die()
     exit 1
 }
 
-function process_role()
+function process_module()
 {
-    if [[ -z $1 ]]; then
-		die "No role passed to process_role function."
-    fi
-
-	if [[ ! -f roles/$1 ]]; then
-		die "Unable to locate role file '$1'"
+	if [[ ! -d $base_dir/modules/$1 ]]; then
+		die "Unable to locate module '$1'"
 	fi
-	
-	# Check parents
-	for parent in `grep role: roles/$1 | sed 's/^role://'`
-	do
-		echo "processing roles/$parent"
-		process_role $parent
-	done
 
-	echo "applying roles/$1"
+	# Do we have stow config
+	if [[ -d $base_dir/modules/$1/stow ]]; then
+		stow -v -d $base_dir/modules/$1 -t ~ stow
+	fi
 
-	# Build module deps
-	modules=( $(grep -v role: roles/$1) )
-	keys=()
-	repos=()
-	packages=()
-
-	for m in ${modules[@]}
-	do
-		IFS=$'\r\n'
-		if [[ ! -d modules/$m ]]; then die "Unable to locate module '$m'"; fi
-		if [[ -f modules/$m/apt_keys ]]; then keys+=( $(cat modules/$m/apt_keys | xargs -0) ); fi
-		if [[ -f modules/$m/apt_repos ]]; then repos+=( $(cat modules/$m/apt_repos | xargs -0) ); fi
-		if [[ -f modules/$m/packages ]]; then packages+=( $(cat modules/$m/packages | xargs -0) ); fi
-	done
-
-	# Add PPAs (and keys)
-	for key in ${keys[@]}
-	do
-		sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $key
-	done
-
-	for repo in ${repos[@]}
-	do
-		sudo apt-add-repository -y $repo
-	done
-
-	# Update
-	sudo apt-get update
-
-	# Packages
-	sudo apt-get -y install ${packages[@]}
-
-	for m in ${modules[@]}
-	do
-		# Stow Configurations
-		if [[ -d modules/$m/stow ]]; then
-			stow -v -d modules/$m -t ~ stow
-		fi
-
-		# Setup
-		if [[ -f modules/$m/setup.sh ]]; then
-			./modules/$m/setup.sh
-		fi
-	done
+	# Do we have a setup script
+	if [[ -f $base_dir/modules/$1/setup.sh ]]; then
+		$base_dir/modules/$1/setup.sh
+	fi
 }
 
-base_dir=`pwd`
-role="$1"
+function check_module()
+{
+	if [[ ! -d $base_dir/modules/$1 ]]; then
+		die "Unable to locate module '$1'"
+	fi
 
-if [[ -z $role ]]; then
-	exit_option="exit";
-	options=( $(ls -1 roles | grep -v common | xargs -0) )
-	PS3="Select role or exit: "
-	select opt in "${options[@]}" "$exit_option"
-	do
-		if [[ $opt == $exit_option ]]; then
-			exit
-		fi
-		if [[ -n $opt ]]; then
-			role="$opt"
-			break
-		fi
+	if grep -qF $1 modules; then
+		return # we've processed this
+	fi
+
+	if [[ -f $base_dir/modules/$1/requires ]]; then
+		for module in `cat $base_dir/modules/$1/requires`; do
+			check_module $module
+		done
+	fi
+
+	echo $1 >> modules
+
+	if [[ -f $base_dir/modules/$1/packages ]]; then cat $base_dir/modules/$1/packages >> packages; fi	
+}
+
+function process_role()
+{
+	if [[ ! -f $base_dir/roles/$1 ]]; then
+		die "Unable to locate role file '$1'"
+    fi
+
+	for parent in `grep role: $base_dir/roles/$1 | sed 's/^role://'`; do
+		process_role $parent
+	done		
+
+	for module in `grep -v role: $base_dir/roles/$1`; do
+		check_module $module
 	done
+
+	grep -qF $1 roles || echo $1 >> roles
+}
+
+if [[ -z $1 ]]; then
+	echo "Usage: $0 [OPTIONS] ROLE..."
+	echo '(re-)installs machine for use for chosen roles'
+	echo
+	echo 'Known roles are;'
+	ls roles
+	exit
 fi
 
+base_dir=`pwd`
 # Tools
-sudo apt-get -y remove vim-tiny
-sudo apt-get -y install curl grc stow
+sudo apt-get -y stow
 
 # Role
-echo building for $role
-process_role $role
+tmp_dir=`mktemp -d`
+pushd $tmp_dir
+
+touch roles modules packages
+
+for role in "$@"; do
+	process_role $role
+done
+
+cat roles | sort | xargs echo "Setting up for roles"
+cat modules | sort | xargs echo "Installing modules"
+echo
+
+cat packages | sort -u | xargs echo "Installing required packages"
+cat packages | sort -u | xargs sudo apt-get -y install
+
+for module in `cat modules`; do
+	process_module $module
+done
+
+echo
+echo install complete
+
+popd
 
