@@ -8,7 +8,7 @@ libmysql++-dev
 libpcre3-dev
 libpcre++-dev
 libzookeeper-mt-dev
-openjdk-6-jdk
+openjdk-8-jdk
 ragel
 uuid-dev
 zlib1g-dev

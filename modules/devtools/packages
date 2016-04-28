@@ -4,3 +4,4 @@ doxygen
 g++
 gcc
 libtool
+libtool-bin

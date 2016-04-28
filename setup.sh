@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -e
 ERROR_APP_NAME=$0
 
 function die()
@@ -74,7 +75,7 @@ fi
 
 base_dir=`pwd`
 # Tools
-sudo apt-get -y stow
+sudo apt-get -y install stow
 
 # Role
 tmp_dir=`mktemp -d`
@@ -92,9 +93,12 @@ echo
 
 cat packages | sort -u | xargs echo "Installing required packages"
 cat packages | sort -u | xargs sudo apt-get -y install
+echo
 
 for module in `cat modules`; do
+	echo "processing $module"
 	process_module $module
+	echo
 done
 
 echo

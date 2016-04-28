@@ -35,7 +35,7 @@ Bundle 'gmarik/vundle'
 
 " Github Bundles
 Bundle 'tpope/vim-fugitive'
-Bundle 'Valloric/YouCompleteMe'
+"Bundle 'Valloric/YouCompleteMe'
 Bundle 'scrooloose/syntastic'
 Bundle 'kien/ctrlp.vim'
 
