@@ -8,3 +8,7 @@ libicu
 libmecab
 libre2
 libxxhash
+libprotobuf
+libprotobuf-c
+libriemann-c-client
+libriemannpp
