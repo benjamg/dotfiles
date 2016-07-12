@@ -2,16 +2,15 @@
 cores=`nproc`
 
 # Xxhash
-svn checkout https://xxhash.googlecode.com/svn/trunk xxhash
-pushd xxhash
+git clone git@github.com:Cyan4973/xxHash.git
+pushd xxHash
 gcc -shared -o libxxhash.so -c -fpic xxhash.c
 sudo install -D libxxhash.so /usr/local/lib/libxxhash.so.1.0.0
-sudo install -D libxxhash.so /usr/local/lib/
 sudo install -D xxhash.h /usr/local/include/
-sudo ln /usr/local/lib/libxxhash.so.1.0.0 /usr/local/libxxhash.so.1
-sudo ln /usr/local/lib/libxxhash.so.1.0.0 /usr/local/libxxhash.so
+sudo ln -s /usr/local/lib/libxxhash.so.1.0.0 /usr/local/lib/libxxhash.so.1
+sudo ln -s /usr/local/lib/libxxhash.so.1.0.0 /usr/local/lib/libxxhash.so
 popd
 
-rm -rf -- xxhash
+rm -rf -- xxHash
 sudo ldconfig
 
